@@ -1,69 +1,193 @@
-const handleSignup = async () => {
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import YouTubeIcon from "@mui/icons-material/YouTube";
+import LinearProgress from "@mui/material/LinearProgress";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import api from "../../api";
+import "./signup.css";
 
-  if (
-    !formData.channelName.trim() ||
-    !formData.userName.trim() ||
-    !formData.password.trim() ||
-    !formData.about.trim()
-  ) {
-    return toast.error("Please fill all fields ⚠️");
-  }
+function Signup() {
 
-  try {
+  const navigate = useNavigate();
 
-    setLoading(true);
+  const [loading, setLoading] = useState(false);
 
-    const res = await api.post(
-      "/api/user/signUp",
-      formData
-    );
+  const [formData, setFormData] = useState({
+    channelName: "",
+    userName: "",
+    password: "",
+    about: "",
+    profilePic: "",
+  });
 
-    if (res.data.success) {
+  // ================= AUTO REDIRECT =================
 
-      // STORE USER DATA
-      localStorage.setItem(
-        "token",
-        res.data.token
-      );
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) navigate("/");
+  }, [navigate]);
 
-      localStorage.setItem(
-        "userId",
-        res.data.user._id
-      );
+  // ================= INPUT CHANGE =================
 
-      localStorage.setItem(
-        "userProfilePic",
-        res.data.user.profilePic || ""
-      );
+  const handleOnChangeInput = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
-      localStorage.setItem(
-        "userName",
-        res.data.user.userName
-      );
+  // ================= SIGNUP =================
 
-      localStorage.setItem(
-        "channelName",
-        res.data.user.channelName
-      );
+  const handleSignup = async () => {
 
-      toast.success("Signup Successful 🎉");
-
-      setTimeout(() => {
-        navigate("/");
-      }, 1200);
+    if (
+      !formData.channelName.trim() ||
+      !formData.userName.trim() ||
+      !formData.password.trim() ||
+      !formData.about.trim()
+    ) {
+      return toast.error("Please fill all fields ⚠️");
     }
 
-  } catch (err) {
+    try {
 
-    console.log(err);
+      setLoading(true);
 
-    toast.error(
-      err.response?.data?.message ||
-      "Signup Failed ❌"
-    );
+      const res = await api.post("/api/user/signUp", formData);
 
-  } finally {
+      if (res.data.success) {
 
-    setLoading(false);
-  }
-};
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("userId", res.data.user._id);
+        localStorage.setItem("userProfilePic", res.data.user.profilePic || "");
+        localStorage.setItem("userName", res.data.user.userName);
+        localStorage.setItem("channelName", res.data.user.channelName);
+
+        toast.success("Signup Successful 🎉");
+
+        setTimeout(() => navigate("/"), 1200);
+      }
+
+    } catch (err) {
+
+      console.log(err);
+
+      toast.error(
+        err.response?.data?.message || "Signup Failed ❌"
+      );
+
+    } finally {
+
+      setLoading(false);
+    }
+  };
+
+  // ================= RENDER =================
+
+  return (
+    <div className="signup-page">
+
+      <div className="signup-card">
+
+        {loading && <LinearProgress />}
+
+        {/* LEFT SIDE */}
+        <div className="signup-left">
+          <div className="profile-preview">
+            <img
+              src={
+                formData.profilePic ||
+                "https://www.w3schools.com/howto/img_avatar.png"
+              }
+              alt="Profile Preview"
+            />
+          </div>
+        </div>
+
+        {/* RIGHT SIDE */}
+        <div className="signup-right">
+
+          <div className="signup-header">
+            <YouTubeIcon className="youtube-logo" />
+            <h2>Create Account</h2>
+          </div>
+
+          <input
+            className="signup-input"
+            type="text"
+            name="channelName"
+            placeholder="Channel Name"
+            value={formData.channelName}
+            onChange={handleOnChangeInput}
+          />
+
+          <input
+            className="signup-input"
+            type="text"
+            name="userName"
+            placeholder="Username"
+            value={formData.userName}
+            onChange={handleOnChangeInput}
+          />
+
+          <input
+            className="signup-input"
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleOnChangeInput}
+          />
+
+          <textarea
+            className="signup-textarea"
+            name="about"
+            placeholder="About your channel..."
+            value={formData.about}
+            onChange={handleOnChangeInput}
+          />
+
+          <input
+            className="signup-input"
+            type="text"
+            name="profilePic"
+            placeholder="Profile Picture URL (optional)"
+            value={formData.profilePic}
+            onChange={handleOnChangeInput}
+          />
+
+          <div className="signup-buttons">
+
+            <button
+              onClick={handleSignup}
+              disabled={loading}
+            >
+              {loading ? "Creating..." : "Sign Up"}
+            </button>
+
+            <button
+              onClick={() => navigate("/login")}
+              disabled={loading}
+            >
+              Login
+            </button>
+
+            <button
+              onClick={() => navigate(-1)}
+              disabled={loading}
+            >
+              Cancel
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <ToastContainer position="top-right" autoClose={2000} />
+
+    </div>
+  );
+}
+
+export default Signup;
