@@ -1,0 +1,67 @@
+.likedVideosPage{
+    padding:20px;
+    color:white;
+    min-height:100vh;
+    background:#0f0f0f;
+}
+
+.liked-title{
+    font-size:28px;
+    margin-bottom:20px;
+}
+
+.liked-video-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:20px;
+}
+
+.liked-video-card{
+    cursor:pointer;
+    background:#1c1c1c;
+    border-radius:10px;
+    overflow:hidden;
+    transition:0.3s;
+}
+
+.liked-video-card:hover{
+    transform:scale(1.02);
+}
+
+.liked-thumbnail{
+    width:100%;
+    height:180px;
+    object-fit:cover;
+}
+
+.liked-info{
+    padding:12px;
+}
+
+.liked-video-title{
+    font-size:16px;
+    font-weight:600;
+    margin-bottom:8px;
+}
+
+.liked-channel{
+    color:#aaa;
+    font-size:14px;
+}
+
+.liked-stats{
+    color:#888;
+    margin-top:6px;
+    font-size:13px;
+}
+
+.empty-liked{
+    margin-top:50px;
+    color:#888;
+    font-size:20px;
+}
+
+.liked-loading{
+    color:white;
+    padding:30px;
+}
