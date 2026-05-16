@@ -1,0 +1,19 @@
+.yourvideos_page { padding: 24px; color: white; min-height: 100vh; background: #0f0f0f; }
+.yourvideos_header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.yourvideos_header h2 { font-size: 22px; font-weight: 600; }
+.upload_btn { background: #3ea6ff; color: black; border: none; padding: 10px 20px; border-radius: 20px; font-size: 14px; cursor: pointer; font-weight: 600; }
+.upload_btn:hover { background: #65b8ff; }
+.yourvideos_list { display: flex; flex-direction: column; gap: 16px; }
+.yourvideos_item { display: flex; gap: 16px; background: #1a1a1a; border-radius: 10px; overflow: hidden; cursor: pointer; padding: 12px; }
+.yourvideos_item:hover { background: #272727; }
+.yourvideos_thumb { width: 200px; height: 112px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+.yourvideos_info { flex: 1; }
+.yourvideos_title { font-size: 16px; font-weight: 500; margin-bottom: 6px; }
+.yourvideos_desc { font-size: 13px; color: #aaa; margin-bottom: 8px; }
+.yourvideos_meta { display: flex; gap: 16px; font-size: 12px; color: #888; }
+.yourvideos_type { background: #3ea6ff22; color: #3ea6ff; padding: 2px 8px; border-radius: 10px; }
+.yourvideos_empty { text-align: center; padding: 80px 20px; color: #aaa; }
+.yourvideos_empty h3 { color: white; margin-bottom: 10px; font-size: 20px; }
+.yourvideos_empty button { margin-top: 16px; background: #3ea6ff; color: black; border: none; padding: 10px 24px; border-radius: 20px; font-size: 14px; cursor: pointer; font-weight: 600; }
+.sidebar-open { margin-left: 240px; }
+@media (max-width: 768px) { .yourvideos_thumb { width: 120px; height: 68px; } .sidebar-open { margin-left: 0; } }

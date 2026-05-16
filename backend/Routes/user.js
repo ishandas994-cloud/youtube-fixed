@@ -17,3 +17,9 @@ router.get("/getUser/:id", UserController.getUserById);
 router.get("/allUsers", UserController.getAllUsers);
 
 module.exports = router;
+// UPDATE USER
+router.put("/update", auth, require("../Controllers/user").updateUser);
+
+// SUBSCRIPTIONS
+router.post("/subscribe/:id", auth, require("../Controllers/user").toggleSubscribe);
+router.get("/subscriptions", auth, require("../Controllers/user").getSubscriptions);

@@ -226,3 +226,52 @@ exports.getMyProfile = async (req, res) => {
     });
   }
 };
+// ================== UPDATE USER ==================
+exports.updateUser = async (req, res) => {
+  try {
+    const { channelName, about, profilePic } = req.body;
+    const updated = await User.findByIdAndUpdate(
+      req.user._id,
+      { channelName, about, profilePic },
+      { new: true }
+    ).select("-password");
+    res.status(200).json({ success: true, user: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ================== TOGGLE SUBSCRIBE ==================
+exports.toggleSubscribe = async (req, res) => {
+  try {
+    const targetId = req.params.id;
+    const userId = req.user._id;
+    const user = await User.findById(userId);
+    const already = user.subscriptions?.includes(targetId);
+    if (already) {
+      await User.findByIdAndUpdate(userId, { $pull: { subscriptions: targetId } });
+    } else {
+      await User.findByIdAndUpdate(userId, { $addToSet: { subscriptions: targetId } });
+    }
+    res.status(200).json({ success: true, subscribed: !already });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ================== GET SUBSCRIPTIONS ==================
+exports.getSubscriptions = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("subscriptions", "channelName profilePic userName");
+    const channels = user.subscriptions || [];
+    // Get recent videos from subscribed channels
+    const Video = require("../Models/video");
+    const videos = await Video.find({ user: { $in: channels.map(c => c._id) } })
+      .populate("user", "channelName profilePic")
+      .sort({ createdAt: -1 })
+      .limit(30);
+    res.status(200).json({ success: true, channels, videos });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

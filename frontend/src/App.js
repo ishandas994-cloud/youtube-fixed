@@ -1,15 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
-
-import api from "./api";
 import "./App.css";
-
-/* ================= COMPONENTS ================= */
 
 import Navbar from "./component/navbar/navbar";
 import SideNavbar from "./component/sideNavbar/sideNavbar";
-
-/* ================= PAGES ================= */
 
 import Home from "./pages/home";
 import Profile from "./pages/profile/profile";
@@ -22,50 +16,16 @@ import Trending from "./pages/trending/trending";
 import History from "./pages/history/History";
 import WatchLater from "./pages/watchLater/WatchLater";
 import LikedVideos from "./pages/LikedVideos/LikedVideos";
+import Subscriptions from "./pages/subscriptions/Subscriptions";
+import YourVideos from "./pages/yourVideos/YourVideos";
+import YourChannel from "./pages/yourChannel/YourChannel";
 
 function App() {
-
-  // ================= STATES =================
-
   const [sideNavbar, setSideNavbar] = useState(true);
-
-  // LOGIN STATE PERSIST AFTER REFRESH
-  const [isLoggedIn, setIsLoggedIn] = useState(
-    !!localStorage.getItem("token")
-  );
-
-  // ================= INITIAL API TEST =================
-
-  useEffect(() => {
-
-    const fetchVideos = async () => {
-
-      try {
-
-        const res = await api.get("/api/video");
-
-        console.log("Videos:", res.data);
-
-      } catch (error) {
-
-        console.log(
-          "Fetch Video Error:",
-          error.response?.data || error.message
-        );
-      }
-    };
-
-    fetchVideos();
-
-  }, []);
-
-  // ================= APP =================
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
 
   return (
     <>
-
-      {/* ================= NAVBAR ================= */}
-
       <Navbar
         sideNavbar={sideNavbar}
         setSideNavbarFunc={setSideNavbar}
@@ -73,144 +33,28 @@ function App() {
         setIsLoggedIn={setIsLoggedIn}
       />
 
-      {/* ================= MAIN LAYOUT ================= */}
-
       <div className="app-layout">
+        <SideNavbar sideNavbar={sideNavbar} isLoggedIn={isLoggedIn} />
 
-        {/* ================= SIDEBAR ================= */}
-
-        <SideNavbar sideNavbar={sideNavbar} />
-
-        {/* ================= CONTENT ================= */}
-
-        <div
-          className={`app-content ${
-            sideNavbar ? "shift-content" : ""
-          }`}
-        >
-
+        <div className={`app-content ${sideNavbar ? "shift-content" : ""}`}>
           <Routes>
-
-            {/* ================= HOME ================= */}
-
-            <Route
-              path="/"
-              element={
-                <Home sideNavbar={sideNavbar} />
-              }
-            />
-
-            {/* ================= TRENDING ================= */}
-
-            <Route
-              path="/trending"
-              element={<Trending />}
-            />
-
-            {/* ================= PROFILE ================= */}
-
-            <Route
-              path="/profile/:id"
-              element={
-                <Profile sideNavbar={sideNavbar} />
-              }
-            />
-
-            {/* ================= VIDEO PAGE ================= */}
-
-            <Route
-              path="/video/:id"
-              element={
-                <Video sideNavbar={sideNavbar} />
-              }
-            />
-
-            {/* ================= UPLOAD ================= */}
-
-            <Route
-              path="/upload"
-              element={<Videoupload />}
-            />
-
-            {/* ================= SEARCH ================= */}
-
-            <Route
-              path="/search/:query"
-              element={<Search />}
-            />
-
-            {/* ================= SIGNUP ================= */}
-
-            <Route
-              path="/signup"
-              element={<Signup />}
-            />
-
-            {/* ================= LOGIN ================= */}
-
-            <Route
-              path="/login"
-              element={
-                <Login
-                  setIsLoggedIn={setIsLoggedIn}
-                />
-              }
-            />
-
-            {/* ================= HISTORY ================= */}
-
-            <Route
-              path="/history"
-              element={
-                <History
-                  sideNavbar={sideNavbar}
-                />
-              }
-            />
-
-            {/* ================= WATCH LATER ================= */}
-
-            <Route
-              path="/watchlater"
-              element={
-                <WatchLater
-                  sideNavbar={sideNavbar}
-                />
-              }
-            />
-
-            {/* ================= LIKED VIDEOS ================= */}
-
-            <Route
-              path="/liked"
-              element={
-                <LikedVideos
-                  sideNavbar={sideNavbar}
-                />
-              }
-            />
-
-            {/* ================= 404 PAGE ================= */}
-
-            <Route
-              path="*"
-              element={
-                <div
-                  style={{
-                    color: "white",
-                    padding: "40px",
-                    fontSize: "24px",
-                  }}
-                >
-                  404 - Page Not Found
-                </div>
-              }
-            />
-
+            <Route path="/"              element={<Home sideNavbar={sideNavbar} />} />
+            <Route path="/trending"      element={<Trending />} />
+            <Route path="/profile/:id"   element={<Profile sideNavbar={sideNavbar} />} />
+            <Route path="/video/:id"     element={<Video sideNavbar={sideNavbar} />} />
+            <Route path="/upload"        element={<Videoupload />} />
+            <Route path="/search/:query" element={<Search />} />
+            <Route path="/signup"        element={<Signup />} />
+            <Route path="/login"         element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+            <Route path="/history"       element={<History sideNavbar={sideNavbar} />} />
+            <Route path="/watchlater"    element={<WatchLater sideNavbar={sideNavbar} />} />
+            <Route path="/liked"         element={<LikedVideos sideNavbar={sideNavbar} />} />
+            <Route path="/subscriptions" element={<Subscriptions sideNavbar={sideNavbar} />} />
+            <Route path="/your-videos"   element={<YourVideos sideNavbar={sideNavbar} />} />
+            <Route path="/your-channel"  element={<YourChannel sideNavbar={sideNavbar} />} />
+            <Route path="*"              element={<div style={{ color: "white", padding: 40, fontSize: 24 }}>404 - Page Not Found</div>} />
           </Routes>
-
         </div>
-
       </div>
     </>
   );
