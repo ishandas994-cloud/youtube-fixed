@@ -11,30 +11,34 @@ const app = express();
 
 require("./Connection/conn");
 
-// ================= CORS OPTIONS =================
+// ================= CORS =================
 
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      "http://localhost:3000",
-      "https://youtube-frontend-eight.vercel.app",
-      "https://youtube-wwj2.vercel.app",
-      "https://nonqualitative-preposterously-anaya.ngrok-free.dev",
-    ];
 
-    // Allow requests with no origin (mobile apps, curl, etc.)
+    // Allow requests with no origin (Postman, mobile apps, curl)
     if (!origin) return callback(null, true);
 
-    if (allowedOrigins.includes(origin)) {
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "http://localhost:5173",
+    ];
+
+    // Allow ANY vercel.app subdomain automatically
+    const isVercel = origin.endsWith(".vercel.app");
+
+    // Allow any ngrok tunnel
+    const isNgrok = origin.includes(".ngrok");
+
+    if (allowedOrigins.includes(origin) || isVercel || isNgrok) {
       return callback(null, true);
     }
 
-    return callback(new Error("CORS Not Allowed"));
+    return callback(new Error("CORS Not Allowed: " + origin));
   },
   credentials: true,
 };
 
-// Apply CORS to all routes (handles preflight automatically)
 app.use(cors(corsOptions));
 
 // ================= MIDDLEWARE =================
