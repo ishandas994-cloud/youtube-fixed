@@ -2,13 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api";
 import "./video.css";
-
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import WatchLaterIcon from "@mui/icons-material/WatchLater";
 
 const VideoPage = () => {
-
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -17,471 +15,195 @@ const VideoPage = () => {
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [loading, setLoading] = useState(true);
-
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
-
-  const [loginMessage, setLoginMessage] = useState("");
+  const [message, setMessage] = useState("");
 
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
 
-  useEffect(() => {
+  const showMessage = (msg) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(""), 3000);
+  };
 
+  useEffect(() => {
     if (!id) return;
 
     const fetchData = async () => {
-
       try {
-
         setLoading(true);
 
-        // FETCH VIDEO
+        // Fetch video
         const videoRes = await api.get(`/api/video/${id}`);
-
         if (videoRes.data.success) {
-
           const video = videoRes.data.video;
-
-          setVideoData({
-            ...video,
-            likes: video.likes || [],
-            dislikes: video.dislikes || [],
-          });
-
+          setVideoData({ ...video, likes: video.likes || [], dislikes: video.dislikes || [] });
           if (userId) {
             setLiked(video.likes?.includes(userId));
             setDisliked(video.dislikes?.includes(userId));
           }
         }
 
-        // FETCH COMMENTS
+        // Fetch comments
         const commentRes = await api.get(`/api/comment/${id}`);
+        setComments(Array.isArray(commentRes.data.comments) ? commentRes.data.comments : []);
 
-        setComments(
-          Array.isArray(commentRes.data.comments)
-            ? commentRes.data.comments
-            : []
-        );
-
-        // FETCH SUGGESTED VIDEOS
-        const suggestionRes = await api.get(`/api/video/suggested/${id}`);
-
-        if (suggestionRes.data.success) {
-          setSuggestedVideos(
-            Array.isArray(suggestionRes.data.videos)
-              ? suggestionRes.data.videos
-              : []
-          );
+        // Fetch suggested
+        const suggestRes = await api.get(`/api/video/suggested/${id}`);
+        if (suggestRes.data.success) {
+          setSuggestedVideos(Array.isArray(suggestRes.data.videos) ? suggestRes.data.videos : []);
         }
 
-        // ADD TO HISTORY
+        // Add to history
         if (token) {
-
-          await api.post(
-            "/api/history/add",
-            { video: id },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          await api.post("/api/history/add", { video: id });
         }
 
       } catch (error) {
-
-        console.error("VideoPage Fetch Error:", error);
-
+        console.error("VideoPage Error:", error);
       } finally {
-
         setLoading(false);
-
       }
     };
 
     fetchData();
-
     window.scrollTo(0, 0);
-
   }, [id, token, userId]);
 
-  // ================= WATCH LATER =================
-
-  const handleWatchLater = () => {
-
-    let watchLater =
-      JSON.parse(localStorage.getItem("watchLater")) || [];
-
-    const alreadyExists = watchLater.find(
-      (item) => item._id === videoData._id
-    );
-
-    if (alreadyExists) {
-
-      setLoginMessage("Already added to Watch Later");
-
-      setTimeout(() => {
-        setLoginMessage("");
-      }, 3000);
-
-      return;
+  // ===== WATCH LATER (API) =====
+  const handleWatchLater = async () => {
+    if (!token) return showMessage("Please login to save Watch Later.");
+    try {
+      const res = await api.post("/api/watchlater/add", { video: id });
+      showMessage(res.data.message || "Added to Watch Later ✔");
+    } catch (err) {
+      showMessage("Failed to add to Watch Later.");
     }
-
-    watchLater.push(videoData);
-
-    localStorage.setItem(
-      "watchLater",
-      JSON.stringify(watchLater)
-    );
-
-    setLoginMessage("Added to Watch Later");
-
-    setTimeout(() => {
-      setLoginMessage("");
-    }, 3000);
   };
 
-  // ================= LIKE / DISLIKE =================
-
+  // ===== LIKE / DISLIKE =====
   const handleReaction = async (type) => {
-
-    if (!token) {
-
-      setLoginMessage("Please login to react.");
-
-      setTimeout(() => setLoginMessage(""), 3000);
-
-      return;
-    }
-
+    if (!token) return showMessage("Please login to react.");
     try {
-
-      const res = await api.put(
-        `/api/video/react/${id}`,
-        { type },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+      const res = await api.put(`/api/video/react/${id}`, { type });
       if (res.data.success) {
-
-        setVideoData((prev) => ({
-          ...prev,
-          likes: res.data.likes,
-          dislikes: res.data.dislikes,
-        }));
-
+        setVideoData((prev) => ({ ...prev, likes: res.data.likes, dislikes: res.data.dislikes }));
         setLiked(res.data.isLiked);
         setDisliked(res.data.isDisliked);
       }
-
-    } catch (error) {
-
-      console.error("Reaction Error:", error);
-
+    } catch (err) {
+      console.error("Reaction error:", err);
     }
   };
 
-  // ================= COMMENT =================
-
+  // ===== COMMENT =====
   const handleAddComment = async () => {
-
-    if (!token) {
-
-      setLoginMessage("Please login first to comment.");
-
-      setTimeout(() => setLoginMessage(""), 3000);
-
-      return;
-    }
-
+    if (!token) return showMessage("Please login to comment.");
     if (!commentText.trim()) return;
-
     try {
-
-      const res = await api.post(
-        "/api/comment",
-        {
-          video: videoData._id,
-          message: commentText,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+      const res = await api.post("/api/comment", { video: videoData._id, message: commentText });
       if (res.data.newComment) {
-
-        setComments((prev) => [
-          res.data.newComment,
-          ...prev,
-        ]);
+        setComments((prev) => [res.data.newComment, ...prev]);
       }
-
       setCommentText("");
-
-    } catch (error) {
-
-      console.error("Add Comment Error:", error);
-
+    } catch (err) {
+      console.error("Comment error:", err);
     }
   };
 
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
-
-  if (!videoData) {
-    return <div>Video not found</div>;
-  }
+  if (loading) return <div className="loading">Loading...</div>;
+  if (!videoData) return <div style={{ color: "white", padding: 40 }}>Video not found</div>;
 
   return (
-
     <div className="video-page">
 
-      {/* LEFT SIDE */}
-
+      {/* LEFT */}
       <div className="videopost-section">
-
         <video className="video_player" controls autoPlay>
-
-          <source
-            src={videoData.videoLink}
-            type="video/mp4"
-          />
-
+          <source src={videoData.videoLink} type="video/mp4" />
         </video>
 
-        <h2 className="video_title">
-          {videoData.title}
-        </h2>
-
-        {/* VIDEO INFO */}
+        <h2 className="video_title">{videoData.title}</h2>
 
         <div className="video_info_row">
-
-          {/* CHANNEL */}
-
-          <div
-            className="channel_section"
-            onClick={() =>
-              navigate(`/profile/${videoData.user?._id}`)
-            }
-          >
-
+          {/* Channel */}
+          <div className="channel_section" onClick={() => navigate(`/profile/${videoData.user?._id}`)}>
             <img
-              src={
-                videoData.user?.profilePic ||
-                "https://via.placeholder.com/40?text=User"
-              }
+              src={videoData.user?.profilePic || "https://via.placeholder.com/40?text=U"}
               alt="channel"
               className="channel_avatar"
             />
-
             <div>
-
-              <div className="channel_name">
-                {videoData.user?.channelName}
-              </div>
-
-              <div className="upload_date">
-                {new Date(
-                  videoData.createdAt
-                ).toDateString()}
-              </div>
-
+              <div className="channel_name">{videoData.user?.channelName}</div>
+              <div className="upload_date">{new Date(videoData.createdAt).toDateString()}</div>
             </div>
-
           </div>
 
-          {/* ACTIONS */}
-
+          {/* Actions */}
           <div className="like_section">
-
-            {/* LIKE */}
-
-            <div
-              onClick={() => handleReaction("like")}
-              style={{
-                cursor: "pointer",
-                color: liked ? "blue" : "white",
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-              }}
-            >
-
-              <ThumbUpIcon />
-
-              <span>
-                {videoData.likes?.length || 0}
-              </span>
-
+            <div onClick={() => handleReaction("like")} style={{ cursor: "pointer", color: liked ? "#3ea6ff" : "white", display: "flex", alignItems: "center", gap: 5 }}>
+              <ThumbUpIcon /><span>{videoData.likes?.length || 0}</span>
             </div>
-
-            {/* DISLIKE */}
-
-            <div
-              onClick={() => handleReaction("dislike")}
-              style={{
-                cursor: "pointer",
-                color: disliked ? "red" : "white",
-                marginLeft: "15px",
-              }}
-            >
-
+            <div onClick={() => handleReaction("dislike")} style={{ cursor: "pointer", color: disliked ? "red" : "white", marginLeft: 15 }}>
               <ThumbDownIcon />
-
             </div>
-
-            {/* WATCH LATER */}
-
-            <div
-              onClick={handleWatchLater}
-              style={{
-                cursor: "pointer",
-                marginLeft: "15px",
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-              }}
-            >
-
-              <WatchLaterIcon />
-
-              <span>Watch Later</span>
-
+            <div onClick={handleWatchLater} style={{ cursor: "pointer", marginLeft: 15, display: "flex", alignItems: "center", gap: 5 }}>
+              <WatchLaterIcon /><span>Watch Later</span>
             </div>
-
           </div>
         </div>
 
-        {/* DESCRIPTION */}
+        {message && <div style={{ color: "#3ea6ff", margin: "10px 0" }}>{message}</div>}
 
-        <div className="video_description">
-          {videoData.description}
-        </div>
+        <div className="video_description">{videoData.description}</div>
 
-        {/* MESSAGE */}
-
-        {loginMessage && (
-          <div
-            style={{
-              color: "red",
-              marginBottom: "10px",
-            }}
-          >
-            {loginMessage}
-          </div>
-        )}
-
-        {/* COMMENTS */}
-
+        {/* Comments */}
         <div className="comments_section">
-
           <h3>{comments.length} Comments</h3>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+            <input
+              className="comment_input"
+              placeholder="Add a comment..."
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
+            />
+            <button className="comment_btn" onClick={handleAddComment}>Comment</button>
+          </div>
 
-          <input
-            className="comment_input"
-            placeholder="Add a comment..."
-            value={commentText}
-            onChange={(e) =>
-              setCommentText(e.target.value)
-            }
-          />
-
-          <button
-            className="comment_btn"
-            onClick={handleAddComment}
-          >
-            Comment
-          </button>
-
-          {Array.isArray(comments) &&
-  comments.map((c, i) => (
-
+          {comments.map((c, i) => (
             <div key={i} className="comment_item">
-
               <img
-                src={
-                  c.user?.profilePic ||
-                  "https://via.placeholder.com/40?text=User"
-                }
+                src={c.user?.profilePic || "https://via.placeholder.com/40?text=U"}
                 alt="user"
                 className="comment_avatar"
-                onClick={() =>
-                  navigate(`/profile/${c.user?._id}`)
-                }
+                onClick={() => navigate(`/profile/${c.user?._id}`)}
+                style={{ cursor: "pointer" }}
               />
-
               <div>
-
-                <div className="comment_user">
-                  {c.user?.userName}
-                </div>
-
-                <div className="comment_text">
-                  {c.message}
-                </div>
-
+                <div className="comment_user">{c.user?.userName}</div>
+                <div className="comment_text">{c.message}</div>
               </div>
-
             </div>
           ))}
         </div>
       </div>
 
-      {/* RIGHT SIDE */}
-
+      {/* RIGHT - Suggested */}
       <div className="video_suggestion">
-
-        {Array.isArray(suggestedVideos) &&
-  suggestedVideos.map((item) => (
-
-          <div
-            key={item._id}
-            className="suggestion_item"
-            onClick={() =>
-              navigate(`/video/${item._id}`)
-            }
-          >
-
-            <img
-              src={item.thumbnail}
-              alt={item.title}
-              className="suggestion_thumbnail"
-            />
-
+        {suggestedVideos.map((item) => (
+          <div key={item._id} className="suggestion_item" onClick={() => navigate(`/video/${item._id}`)}>
+            <img src={item.thumbnail} alt={item.title} className="suggestion_thumbnail" />
             <div className="suggestion_info">
-
-              <div className="suggestion_title">
-                {item.title}
-              </div>
-
-              <div className="suggestion_channel">
-                {item.user?.channelName}
-              </div>
-
-              <div className="suggestion_stats">
-
-                {item.likes?.length || 0} likes •{" "}
-                {new Date(
-                  item.createdAt
-                ).toDateString()}
-
-              </div>
-
+              <div className="suggestion_title">{item.title}</div>
+              <div className="suggestion_channel">{item.user?.channelName}</div>
+              <div className="suggestion_stats">{item.likes?.length || 0} likes • {new Date(item.createdAt).toDateString()}</div>
             </div>
-
           </div>
         ))}
       </div>
+
     </div>
   );
 };
