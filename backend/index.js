@@ -1,110 +1,63 @@
 require("dotenv").config();
 
 const express = require("express");
-const path = require("path");
 const cookieParser = require("cookie-parser");
-const cors = require("cors");
 
 const app = express();
 
-// ================= DATABASE =================
+// ===== CORS - manually set headers on EVERY response =====
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Requested-With");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
-require("./Connection/conn");
-
-// ================= CORS =================
-
-const corsOptions = {
-  origin: function (origin, callback) {
-
-    // Allow requests with no origin (Postman, mobile apps, curl)
-    if (!origin) return callback(null, true);
-
-    const allowedOrigins = [
-      "http://localhost:3000",
-      "http://localhost:5173",
-    ];
-
-    // Allow ANY vercel.app subdomain automatically
-    const isVercel = origin.endsWith(".vercel.app");
-
-    // Allow any ngrok tunnel
-    const isNgrok = origin.includes(".ngrok");
-
-    if (allowedOrigins.includes(origin) || isVercel || isNgrok) {
-      return callback(null, true);
-    }
-
-    return callback(new Error("CORS Not Allowed: " + origin));
-  },
-  credentials: true,
-};
-
-app.use(cors(corsOptions));
-
-// ================= MIDDLEWARE =================
-
+// ===== MIDDLEWARE =====
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ================= ROUTES =================
+// ===== DATABASE =====
+require("./Connection/conn");
 
-const userRoutes = require("./Routes/user");
-const videoRoutes = require("./Routes/video");
-const commentRoutes = require("./Routes/comment");
-const historyRoutes = require("./Routes/history");
+// ===== ROUTES =====
+const userRoutes     = require("./Routes/user");
+const videoRoutes    = require("./Routes/video");
+const commentRoutes  = require("./Routes/comment");
+const historyRoutes  = require("./Routes/history");
 const watchLaterRoutes = require("./Routes/watchLater");
 
-// ================= STATIC =================
-
-app.use(
-  "/videos",
-  express.static(path.join(__dirname, "videos"))
-);
-
-// ================= API ROUTES =================
-
-app.use("/api/user", userRoutes);
-app.use("/api/video", videoRoutes);
-app.use("/api/comment", commentRoutes);
-app.use("/api/history", historyRoutes);
+app.use("/api/user",      userRoutes);
+app.use("/api/video",     videoRoutes);
+app.use("/api/comment",   commentRoutes);
+app.use("/api/history",   historyRoutes);
 app.use("/api/watchlater", watchLaterRoutes);
 
-// ================= HOME =================
-
+// ===== HOME =====
 app.get("/", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "Backend running successfully 🚀",
-  });
+  res.status(200).json({ success: true, message: "Backend running 🚀" });
 });
 
-// ================= 404 =================
-
+// ===== 404 =====
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
+  res.status(404).json({ success: false, message: "Route not found" });
 });
 
-// ================= ERROR HANDLER =================
-
+// ===== ERROR =====
 app.use((err, req, res, next) => {
-  console.error("🔥 ERROR:", err);
-  res.status(500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-  });
+  console.error("SERVER ERROR:", err.message);
+  res.status(500).json({ success: false, message: err.message });
 });
 
-// ================= LOCAL SERVER =================
-
+// ===== LOCAL ONLY =====
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 4000;
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on ${PORT}`);
-  });
+  app.listen(PORT, () => console.log("Server running on port " + PORT));
 }
 
 module.exports = app;

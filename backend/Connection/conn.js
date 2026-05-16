@@ -1,18 +1,29 @@
 const mongoose = require("mongoose");
 
-const mongoUri = process.env.MONGO_URL;
+const connectDB = async () => {
+  const mongoUri = process.env.MONGO_URL;
 
-if (!mongoUri) {
-  console.error("FATAL ERROR: MONGO_URL is missing");
-  process.exit(1);
-}
+  if (!mongoUri) {
+    console.error("MONGO_URL is not set in environment variables");
+    return;
+  }
 
-console.log("Connecting to MongoDB at:", mongoUri);
+  if (mongoose.connection.readyState >= 1) {
+    console.log("MongoDB already connected");
+    return;
+  }
 
-mongoose
-  .connect(mongoUri)
-  .then(() => console.log("MongoDB Connected ✅"))
-  .catch((err) => {
-    console.error("MongoDB connection error:", err.message);
-    process.exit(1);
-  });
+  try {
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 10000,
+    });
+    console.log("MongoDB Connected ✅");
+  } catch (err) {
+    console.error("MongoDB connection failed:", err.message);
+    // Do NOT call process.exit() - let Vercel handle the error gracefully
+  }
+};
+
+connectDB();
+
+module.exports = connectDB;
