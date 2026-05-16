@@ -11,6 +11,38 @@ const app = express();
 
 require("./Connection/conn");
 
+// ================= CORS OPTIONS =================
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "https://youtube-frontend-eight.vercel.app",
+      "https://youtube-wwj2.vercel.app",
+      "https://nonqualitative-preposterously-anaya.ngrok-free.dev",
+    ];
+
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("CORS Not Allowed"));
+  },
+  credentials: true,
+};
+
+// Apply CORS to all routes (handles preflight automatically)
+app.use(cors(corsOptions));
+
+// ================= MIDDLEWARE =================
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
 // ================= ROUTES =================
 
 const userRoutes = require("./Routes/user");
@@ -18,43 +50,6 @@ const videoRoutes = require("./Routes/video");
 const commentRoutes = require("./Routes/comment");
 const historyRoutes = require("./Routes/history");
 const watchLaterRoutes = require("./Routes/watchLater");
-
-// ================= CORS =================
-
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://youtube-frontend-eight.vercel.app",
-  "https://youtube-wwj2.vercel.app",
-  "https://nonqualitative-preposterously-anaya.ngrok-free.dev",
-];
-
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // allow requests without origin
-      if (!origin) {
-        return callback(null, true);
-      }
-
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("CORS Not Allowed"));
-    },
-
-    credentials: true,
-  })
-);
-
-// IMPORTANT: Handle preflight for ALL routes
-app.options("*", cors());
-
-// ================= MIDDLEWARE =================
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
 // ================= STATIC =================
 
@@ -93,7 +88,6 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error("🔥 ERROR:", err);
-
   res.status(500).json({
     success: false,
     message: err.message || "Internal Server Error",
@@ -104,7 +98,6 @@ app.use((err, req, res, next) => {
 
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 4000;
-
   app.listen(PORT, () => {
     console.log(`🚀 Server running on ${PORT}`);
   });
