@@ -5,59 +5,35 @@
 }
 
 body {
-  background-color: #0f0f0f;
+  background-color: var(--bg-primary);
   font-family: Arial, Helvetica, sans-serif;
   user-select: none;
   caret-color: transparent;
 }
 
-/* Allow typing */
-input,
-textarea {
+input, textarea {
   user-select: text;
   caret-color: auto;
 }
 
-/* Layout */
-.app-layout {
-  display: flex;
-}
-
-/* Main Content */
-.app-content {
-  width: 100%;
-  margin-top: 56px; /* navbar height */
-  padding: 20px;
-  transition: margin-left 0.3s ease;
-}
-
-/* When sidebar open */
-.shift-content {
-  margin-left: 275px;
-}
-/* MOBILE FIX */
-@media (max-width: 768px) {
-  .shift-content {
-    margin-left: 0 !important;
-  }
-}
 .app-layout {
   display: flex;
 }
 
 .app-content {
   width: 100%;
-  margin-top: 56px; /* navbar height */
+  margin-top: 56px;
   padding: 20px;
   transition: margin-left 0.3s ease;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  min-height: calc(100vh - 56px);
 }
 
-/* When sidebar open on desktop */
 .shift-content {
   margin-left: 275px;
 }
 
-/* MOBILE FIX */
 @media (max-width: 768px) {
   .shift-content {
     margin-left: 0 !important;
