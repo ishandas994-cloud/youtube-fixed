@@ -1,17 +1,6 @@
-/* ================= GLOBAL LINK RESET ================= */
-a {
-  text-decoration: none;
-  color: inherit;
-}
+a { text-decoration: none; color: inherit; }
+.youtube_link { display: flex; align-items: center; text-decoration: none; color: inherit; }
 
-.youtube_link {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: inherit;
-}
-
-/* ================= NAVBAR ================= */
 .navbar {
   height: 56px;
   padding: 0 16px;
@@ -21,236 +10,113 @@ a {
   position: fixed;
   top: 0;
   width: 100%;
-  background-color: #0f0f0f;
+  background-color: var(--navbar-bg);
   z-index: 1000;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.3s ease;
 }
 
-/* ================= LEFT ================= */
-.navbar-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
+.navbar-left { display: flex; align-items: center; gap: 14px; }
 
 .navbarHamburger {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
+  width: 40px; height: 40px; border-radius: 50%;
+  display: flex; justify-content: center; align-items: center; cursor: pointer;
 }
+.navbarHamburger:hover { background-color: var(--bg-hover); }
+.navbarHamburger svg { color: var(--icon-color); }
 
-.navbarHamburger:hover {
-  background-color: #272727;
-}
+.youtube_img { display: flex; align-items: center; gap: 6px; }
+.youtube_image { color: red; font-size: 34px; }
+.navbar_youtubetitle { color: var(--text-primary); font-size: 20px; font-weight: 600; }
 
-.navbarHamburger svg {
-  color: white;
-}
+.navbar-center { display: flex; align-items: center; gap: 16px; flex: 1; justify-content: center; }
 
-/* ================= LOGO ================= */
-.youtube_img {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.youtube_image {
-  color: red;
-  font-size: 34px;
-}
-
-.navbar_youtubetitle {
-  color: white;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-/* ================= CENTER ================= */
-.navbar-center {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex: 1;
-  justify-content: center;
-}
-
-/* ================= SEARCH BAR ================= */
-.navbar-search {
-  display: flex;
-  align-items: center;
-  width: 550px;
-  max-width: 100%;
-  transition: all 0.3s ease;
-}
+.navbar-search { display: flex; align-items: center; width: 550px; max-width: 100%; }
 
 .search-input {
-  width: 100%;
-  height: 40px;
-  background-color: #121212;
-  border: 1px solid #303030;
+  width: 100%; height: 40px;
+  background-color: var(--search-bg);
+  border: 1px solid var(--search-border);
   border-radius: 20px 0 0 20px;
   padding-left: 16px;
-  color: white;
+  color: var(--text-primary);
   font-size: 16px;
   transition: all 0.3s ease;
 }
-
-.search-input:focus {
-  border-color: #1E90FF; /* blue border */
-  box-shadow: 0 0 8px rgba(30, 144, 255, 0.6); /* blue glow */
-  outline: none;
-}
+.search-input::placeholder { color: var(--text-tertiary); }
+.search-input:focus { border-color: #1E90FF; box-shadow: 0 0 8px rgba(30,144,255,0.4); outline: none; }
 
 .search-icon {
-  width: 64px;
-  height: 40px;
-  background-color: #222;
-  border: 1px solid #303030;
-  border-left: none;
+  width: 64px; height: 40px;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--search-border); border-left: none;
   border-radius: 0 20px 20px 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
   transition: all 0.3s ease;
 }
+.search-icon:hover { background-color: #1E90FF; }
+.search-icon svg { color: var(--icon-color); }
+.search-icon:hover svg { color: white; }
 
-.search-icon:hover {
-  background-color: #1E90FF;
-  transform: scale(1.05);
-}
-
-.search-icon svg {
-  color: white;
-  transition: transform 0.3s ease;
-}
-
-.search-icon:hover svg {
-  transform: scale(1.2);
-}
-
-.search-input:active {
-  transform: scale(0.98);
-}
-
-/* ================= MICROPHONE ================= */
 .navbar-mic {
-  width: 40px;
-  height: 40px;
-  background-color: #181818;
+  width: 40px; height: 40px;
+  background-color: var(--bg-tertiary);
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.navbar-mic:hover { background-color: var(--bg-hover); }
+.navbar-mic svg { color: var(--icon-color); }
+.mic-active { background-color: #452492 !important; animation: pulse 1s infinite; }
+.mic-active svg { color: white !important; }
+
+.navbar-right { display: flex; align-items: center; gap: 16px; }
+
+/* ===== THEME TOGGLE ===== */
+.theme-toggle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  color: var(--icon-color);
 }
-
-.navbar-mic:hover {
-  background-color: #272727;
-}
-
-.navbar-mic svg {
-  color: white;
-}
-
-/* ================= RIGHT ================= */
-.navbar-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+.theme-toggle:hover { background-color: var(--bg-hover); }
+.theme-toggle svg { font-size: 22px !important; }
 
 .navbar-icon {
-  width: 30px !important;
-  height: 30px !important;
-  padding: 6px;
-  border-radius: 50%;
-  cursor: pointer;
-  color: white;
-  transition: all 0.3s ease;
+  width: 30px !important; height: 30px !important;
+  padding: 6px; border-radius: 50%; cursor: pointer;
+  color: var(--icon-color) !important; transition: all 0.3s ease;
 }
+.navbar-icon:hover { background-color: var(--bg-hover); }
 
-.navbar-icon:hover {
-  background-color: #272727;
-}
-
-/* ================= PROFILE DROPDOWN ================= */
-.profile-wrapper {
-  position: relative;
-}
+.profile-wrapper { position: relative; }
 
 .navbar-model {
-  position: absolute;
-  top: 42px;
-  right: 0;
-  background: #212121;
-  border-radius: 8px;
-  width: 160px;
-  padding: 6px 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  position: absolute; top: 42px; right: 0;
+  background: var(--dropdown-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px; width: 180px; padding: 6px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  z-index: 1001;
 }
+.navbar-model-item { padding: 10px 16px; color: var(--text-primary); cursor: pointer; font-size: 14px; }
+.navbar-model-item:hover { background: var(--bg-hover); }
+.navbar-model-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
 
-.navbar-model-item {
-  padding: 10px 16px;
-  color: white;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.navbar-model-item:hover {
-  background: #383838;
-}
-
-.navbar-profile-pic {
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  cursor: pointer;
-  object-fit: cover;
-}
-.mic-active {
-  background-color: #452492;
-  color: white;
-  border-radius: 50%;
-  animation: pulse 1s infinite;
-}
+.navbar-profile-pic { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; object-fit: cover; }
 
 @keyframes pulse {
   0% { transform: scale(1); }
   50% { transform: scale(1.15); }
   100% { transform: scale(1); }
 }
-/* ================= MOBILE RESPONSIVE ================= */
+
 @media (max-width: 768px) {
-
-  .navbar-center {
-    display: none; /* hide big search bar */
-  }
-
-  .navbar_youtubetitle {
-    display: none; /* hide YouTube text */
-  }
-
-  .navbar-right {
-    gap: 8px;
-  }
-
-  .navbar-icon {
-    width: 24px !important;
-    height: 24px !important;
-    padding: 4px;
-  }
-
-  .navbar-profile-pic {
-    width: 28px;
-    height: 28px;
-  }
-
-  .navbar {
-    padding: 0 8px;
-  }
+  .navbar-center { display: none; }
+  .navbar_youtubetitle { display: none; }
+  .navbar-right { gap: 8px; }
+  .navbar-icon { width: 24px !important; height: 24px !important; padding: 4px; }
+  .navbar-profile-pic { width: 28px; height: 28px; }
+  .navbar { padding: 0 8px; }
 }
