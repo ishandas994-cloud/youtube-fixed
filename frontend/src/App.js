@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import "./App.css";
 
@@ -24,6 +24,20 @@ function App() {
   const [sideNavbar, setSideNavbar] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem("token"));
 
+  // ===== DARK/LIGHT THEME =====
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem("theme");
+    return saved ? saved === "dark" : true; // default dark
+  });
+
+  useEffect(() => {
+    document.body.classList.remove("dark", "light");
+    document.body.classList.add(darkMode ? "dark" : "light");
+    localStorage.setItem("theme", darkMode ? "dark" : "light");
+  }, [darkMode]);
+
+  const toggleTheme = () => setDarkMode(prev => !prev);
+
   return (
     <>
       <Navbar
@@ -31,6 +45,8 @@ function App() {
         setSideNavbarFunc={setSideNavbar}
         isLoggedIn={isLoggedIn}
         setIsLoggedIn={setIsLoggedIn}
+        darkMode={darkMode}
+        toggleTheme={toggleTheme}
       />
 
       <div className="app-layout">
@@ -52,7 +68,7 @@ function App() {
             <Route path="/subscriptions" element={<Subscriptions sideNavbar={sideNavbar} />} />
             <Route path="/your-videos"   element={<YourVideos sideNavbar={sideNavbar} />} />
             <Route path="/your-channel"  element={<YourChannel sideNavbar={sideNavbar} />} />
-            <Route path="*"              element={<div style={{ color: "white", padding: 40, fontSize: 24 }}>404 - Page Not Found</div>} />
+            <Route path="*"              element={<div style={{color:"var(--text-primary)",padding:40,fontSize:24}}>404 - Page Not Found</div>} />
           </Routes>
         </div>
       </div>
