@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../api";
 import "./video.css";
+
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import WatchLaterIcon from "@mui/icons-material/WatchLater";
+import ShareIcon from "@mui/icons-material/Share";
 
 const VideoPage = () => {
   const { id } = useParams();
@@ -15,195 +17,507 @@ const VideoPage = () => {
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [loading, setLoading] = useState(true);
+
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
+
   const [message, setMessage] = useState("");
 
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
 
+  // ================= MESSAGE =================
+
   const showMessage = (msg) => {
     setMessage(msg);
-    setTimeout(() => setMessage(""), 3000);
+
+    setTimeout(() => {
+      setMessage("");
+    }, 3000);
   };
 
+  // ================= FETCH VIDEO =================
+
   useEffect(() => {
+
     if (!id) return;
 
-    const fetchData = async () => {
+    const fetchVideoData = async () => {
+
       try {
+
         setLoading(true);
 
-        // Fetch video
+        // VIDEO
         const videoRes = await api.get(`/api/video/${id}`);
+
         if (videoRes.data.success) {
+
           const video = videoRes.data.video;
-          setVideoData({ ...video, likes: video.likes || [], dislikes: video.dislikes || [] });
+
+          setVideoData({
+            ...video,
+            likes: video.likes || [],
+            dislikes: video.dislikes || [],
+          });
+
           if (userId) {
             setLiked(video.likes?.includes(userId));
             setDisliked(video.dislikes?.includes(userId));
           }
         }
 
-        // Fetch comments
+        // COMMENTS
         const commentRes = await api.get(`/api/comment/${id}`);
-        setComments(Array.isArray(commentRes.data.comments) ? commentRes.data.comments : []);
 
-        // Fetch suggested
+        setComments(
+          Array.isArray(commentRes.data.comments)
+            ? commentRes.data.comments
+            : []
+        );
+
+        // SUGGESTED VIDEOS
         const suggestRes = await api.get(`/api/video/suggested/${id}`);
+
         if (suggestRes.data.success) {
-          setSuggestedVideos(Array.isArray(suggestRes.data.videos) ? suggestRes.data.videos : []);
+
+          setSuggestedVideos(
+            Array.isArray(suggestRes.data.videos)
+              ? suggestRes.data.videos
+              : []
+          );
         }
 
-        // Add to history
+        // HISTORY
         if (token) {
-          await api.post("/api/history/add", { video: id });
+          await api.post("/api/history/add", {
+            video: id,
+          });
         }
 
       } catch (error) {
-        console.error("VideoPage Error:", error);
+
+        console.log("Video fetch error:", error);
+
       } finally {
+
         setLoading(false);
+
       }
     };
 
-    fetchData();
+    fetchVideoData();
+
     window.scrollTo(0, 0);
+
   }, [id, token, userId]);
 
-  // ===== WATCH LATER (API) =====
+  // ================= WATCH LATER =================
+
   const handleWatchLater = async () => {
-    if (!token) return showMessage("Please login to save Watch Later.");
+
+    if (!token) {
+      return showMessage("Please login first");
+    }
+
     try {
-      const res = await api.post("/api/watchlater/add", { video: id });
-      showMessage(res.data.message || "Added to Watch Later ✔");
-    } catch (err) {
-      showMessage("Failed to add to Watch Later.");
+
+      const res = await api.post("/api/watchlater/add", {
+        video: id,
+      });
+
+      showMessage(res.data.message || "Added to Watch Later");
+
+    } catch (error) {
+
+      showMessage("Failed to save video");
+
     }
   };
 
-  // ===== LIKE / DISLIKE =====
-  const handleReaction = async (type) => {
-    if (!token) return showMessage("Please login to react.");
+  // ================= SHARE VIDEO =================
+
+  const handleShare = async () => {
+
+    const shareUrl = `${window.location.origin}/video/${id}`;
+
     try {
-      const res = await api.put(`/api/video/react/${id}`, { type });
+
+      // MOBILE SHARE
+      if (navigator.share) {
+
+        await navigator.share({
+          title: videoData.title,
+          text: "Watch this video",
+          url: shareUrl,
+        });
+
+      } else {
+
+        // DESKTOP COPY
+        await navigator.clipboard.writeText(shareUrl);
+
+        showMessage("Video link copied!");
+
+      }
+
+    } catch (error) {
+
+      console.log("Share cancelled");
+
+    }
+  };
+
+  // ================= LIKE / DISLIKE =================
+
+  const handleReaction = async (type) => {
+
+    if (!token) {
+      return showMessage("Please login first");
+    }
+
+    try {
+
+      const res = await api.put(`/api/video/react/${id}`, {
+        type,
+      });
+
       if (res.data.success) {
-        setVideoData((prev) => ({ ...prev, likes: res.data.likes, dislikes: res.data.dislikes }));
+
+        setVideoData((prev) => ({
+          ...prev,
+          likes: res.data.likes,
+          dislikes: res.data.dislikes,
+        }));
+
         setLiked(res.data.isLiked);
         setDisliked(res.data.isDisliked);
       }
-    } catch (err) {
-      console.error("Reaction error:", err);
+
+    } catch (error) {
+
+      console.log("Reaction error:", error);
+
     }
   };
 
-  // ===== COMMENT =====
+  // ================= COMMENT =================
+
   const handleAddComment = async () => {
-    if (!token) return showMessage("Please login to comment.");
+
+    if (!token) {
+      return showMessage("Please login first");
+    }
+
     if (!commentText.trim()) return;
+
     try {
-      const res = await api.post("/api/comment", { video: videoData._id, message: commentText });
+
+      const res = await api.post("/api/comment", {
+        video: videoData._id,
+        message: commentText,
+      });
+
       if (res.data.newComment) {
-        setComments((prev) => [res.data.newComment, ...prev]);
+
+        setComments((prev) => [
+          res.data.newComment,
+          ...prev,
+        ]);
       }
+
       setCommentText("");
-    } catch (err) {
-      console.error("Comment error:", err);
+
+    } catch (error) {
+
+      console.log("Comment error:", error);
+
     }
   };
 
-  if (loading) return <div className="loading">Loading...</div>;
-  if (!videoData) return <div style={{ color: "white", padding: 40 }}>Video not found</div>;
+  // ================= LOADING =================
+
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
+
+  if (!videoData) {
+    return (
+      <div style={{ color: "white", padding: "40px" }}>
+        Video not found
+      </div>
+    );
+  }
 
   return (
     <div className="video-page">
 
-      {/* LEFT */}
+      {/* LEFT SECTION */}
+
       <div className="videopost-section">
-        <video className="video_player" controls autoPlay>
-          <source src={videoData.videoLink} type="video/mp4" />
+
+        {/* VIDEO */}
+
+        <video
+          className="video_player"
+          controls
+          autoPlay
+        >
+          <source
+            src={videoData.videoLink}
+            type="video/mp4"
+          />
         </video>
 
-        <h2 className="video_title">{videoData.title}</h2>
+        {/* TITLE */}
+
+        <h2 className="video_title">
+          {videoData.title}
+        </h2>
+
+        {/* INFO ROW */}
 
         <div className="video_info_row">
-          {/* Channel */}
-          <div className="channel_section" onClick={() => navigate(`/profile/${videoData.user?._id}`)}>
+
+          {/* CHANNEL */}
+
+          <div
+            className="channel_section"
+            onClick={() =>
+              navigate(`/profile/${videoData.user?._id}`)
+            }
+          >
+
             <img
-              src={videoData.user?.profilePic || "https://via.placeholder.com/40?text=U"}
+              src={
+                videoData.user?.profilePic ||
+                "https://via.placeholder.com/40?text=U"
+              }
               alt="channel"
               className="channel_avatar"
             />
+
             <div>
-              <div className="channel_name">{videoData.user?.channelName}</div>
-              <div className="upload_date">{new Date(videoData.createdAt).toDateString()}</div>
+
+              <div className="channel_name">
+                {videoData.user?.channelName}
+              </div>
+
+              <div className="upload_date">
+                {new Date(
+                  videoData.createdAt
+                ).toDateString()}
+              </div>
+
             </div>
           </div>
 
-          {/* Actions */}
+          {/* ACTIONS */}
+
           <div className="like_section">
-            <div onClick={() => handleReaction("like")} style={{ cursor: "pointer", color: liked ? "#3ea6ff" : "white", display: "flex", alignItems: "center", gap: 5 }}>
-              <ThumbUpIcon /><span>{videoData.likes?.length || 0}</span>
+
+            {/* LIKE */}
+
+            <div
+              onClick={() => handleReaction("like")}
+              style={{
+                cursor: "pointer",
+                color: liked ? "#3ea6ff" : "white",
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+              }}
+            >
+              <ThumbUpIcon />
+              <span>
+                {videoData.likes?.length || 0}
+              </span>
             </div>
-            <div onClick={() => handleReaction("dislike")} style={{ cursor: "pointer", color: disliked ? "red" : "white", marginLeft: 15 }}>
+
+            {/* DISLIKE */}
+
+            <div
+              onClick={() => handleReaction("dislike")}
+              style={{
+                cursor: "pointer",
+                color: disliked ? "red" : "white",
+                marginLeft: "15px",
+              }}
+            >
               <ThumbDownIcon />
             </div>
-            <div onClick={handleWatchLater} style={{ cursor: "pointer", marginLeft: 15, display: "flex", alignItems: "center", gap: 5 }}>
-              <WatchLaterIcon /><span>Watch Later</span>
+
+            {/* WATCH LATER */}
+
+            <div
+              onClick={handleWatchLater}
+              style={{
+                cursor: "pointer",
+                marginLeft: "15px",
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+              }}
+            >
+              <WatchLaterIcon />
+              <span>Watch Later</span>
             </div>
+
+            {/* SHARE */}
+
+            <div
+              onClick={handleShare}
+              style={{
+                cursor: "pointer",
+                marginLeft: "15px",
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+              }}
+            >
+              <ShareIcon />
+              <span>Share</span>
+            </div>
+
           </div>
         </div>
 
-        {message && <div style={{ color: "#3ea6ff", margin: "10px 0" }}>{message}</div>}
+        {/* MESSAGE */}
 
-        <div className="video_description">{videoData.description}</div>
+        {message && (
+          <div
+            style={{
+              color: "#3ea6ff",
+              margin: "10px 0",
+            }}
+          >
+            {message}
+          </div>
+        )}
 
-        {/* Comments */}
+        {/* DESCRIPTION */}
+
+        <div className="video_description">
+          {videoData.description}
+        </div>
+
+        {/* COMMENTS */}
+
         <div className="comments_section">
-          <h3>{comments.length} Comments</h3>
-          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+
+          <h3>
+            {comments.length} Comments
+          </h3>
+
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              marginBottom: "20px",
+            }}
+          >
+
             <input
               className="comment_input"
               placeholder="Add a comment..."
               value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAddComment()}
+              onChange={(e) =>
+                setCommentText(e.target.value)
+              }
+              onKeyDown={(e) =>
+                e.key === "Enter" &&
+                handleAddComment()
+              }
             />
-            <button className="comment_btn" onClick={handleAddComment}>Comment</button>
+
+            <button
+              className="comment_btn"
+              onClick={handleAddComment}
+            >
+              Comment
+            </button>
+
           </div>
 
-          {comments.map((c, i) => (
-            <div key={i} className="comment_item">
+          {comments.map((comment, index) => (
+
+            <div
+              key={index}
+              className="comment_item"
+            >
+
               <img
-                src={c.user?.profilePic || "https://via.placeholder.com/40?text=U"}
+                src={
+                  comment.user?.profilePic ||
+                  "https://via.placeholder.com/40?text=U"
+                }
                 alt="user"
                 className="comment_avatar"
-                onClick={() => navigate(`/profile/${c.user?._id}`)}
+                onClick={() =>
+                  navigate(`/profile/${comment.user?._id}`)
+                }
                 style={{ cursor: "pointer" }}
               />
+
               <div>
-                <div className="comment_user">{c.user?.userName}</div>
-                <div className="comment_text">{c.message}</div>
+
+                <div className="comment_user">
+                  {comment.user?.userName}
+                </div>
+
+                <div className="comment_text">
+                  {comment.message}
+                </div>
+
               </div>
+
             </div>
           ))}
         </div>
       </div>
 
-      {/* RIGHT - Suggested */}
+      {/* RIGHT SECTION */}
+
       <div className="video_suggestion">
+
         {suggestedVideos.map((item) => (
-          <div key={item._id} className="suggestion_item" onClick={() => navigate(`/video/${item._id}`)}>
-            <img src={item.thumbnail} alt={item.title} className="suggestion_thumbnail" />
+
+          <div
+            key={item._id}
+            className="suggestion_item"
+            onClick={() =>
+              navigate(`/video/${item._id}`)
+            }
+          >
+
+            <img
+              src={item.thumbnail}
+              alt={item.title}
+              className="suggestion_thumbnail"
+            />
+
             <div className="suggestion_info">
-              <div className="suggestion_title">{item.title}</div>
-              <div className="suggestion_channel">{item.user?.channelName}</div>
-              <div className="suggestion_stats">{item.likes?.length || 0} likes • {new Date(item.createdAt).toDateString()}</div>
+
+              <div className="suggestion_title">
+                {item.title}
+              </div>
+
+              <div className="suggestion_channel">
+                {item.user?.channelName}
+              </div>
+
+              <div className="suggestion_stats">
+                {item.likes?.length || 0} likes •{" "}
+                {new Date(
+                  item.createdAt
+                ).toDateString()}
+              </div>
+
             </div>
+
           </div>
         ))}
       </div>
-
     </div>
   );
 };
