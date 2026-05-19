@@ -14,6 +14,7 @@ const videoSchema = new mongoose.Schema(
     videoType: { type: String, default: "All" },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    views: { type: Number, default: 0 },   // 👈 ADD THIS LINE
   },
   { timestamps: true }
 );
