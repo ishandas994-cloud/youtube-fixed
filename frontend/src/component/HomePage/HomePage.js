@@ -3,6 +3,13 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./HomePage.css";
 import api from "../../api";
 
+// ================= FORMAT VIEWS =================
+const formatViews = (views = 0) => {
+  if (views >= 1000000) return (views / 1000000).toFixed(1) + "M";
+  if (views >= 1000) return (views / 1000).toFixed(1) + "K";
+  return views.toString();
+};
+
 const HomePage = ({ sideNavbar }) => {
   const [videos, setVideos] = useState([]);
   const [filteredVideos, setFilteredVideos] = useState([]);
@@ -13,9 +20,7 @@ const HomePage = ({ sideNavbar }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ GET SEARCH QUERY FROM URL
-  const searchQuery =
-    new URLSearchParams(location.search).get("search") || "";
+  const searchQuery = new URLSearchParams(location.search).get("search") || "";
 
   // ================= FETCH VIDEOS =================
   useEffect(() => {
@@ -25,15 +30,12 @@ const HomePage = ({ sideNavbar }) => {
 
         if (res.data.success && Array.isArray(res.data.videos)) {
           const videoData = res.data.videos;
-
           setVideos(videoData);
 
-          // 🔥 Create dynamic categories
           const uniqueCategories = [
             "All",
             ...new Set(videoData.map((video) => video.videoType || "All")),
           ];
-
           setCategories(uniqueCategories);
         }
       } catch (error) {
@@ -44,20 +46,17 @@ const HomePage = ({ sideNavbar }) => {
     fetchVideos();
   }, []);
 
-  // ================= FILTER LOGIC (SEARCH + CATEGORY) =================
+  // ================= FILTER LOGIC =================
   useEffect(() => {
     let filtered = [...videos];
 
-    // 🔎 Apply search filter
     if (searchQuery) {
       const cleanedSearch = searchQuery.toLowerCase().trim();
-
       filtered = filtered.filter((video) =>
         video.title.toLowerCase().includes(cleanedSearch)
       );
     }
 
-    // 🎯 Apply category filter
     if (activeCategory !== "All") {
       filtered = filtered.filter(
         (video) => video.videoType === activeCategory
@@ -75,7 +74,6 @@ const HomePage = ({ sideNavbar }) => {
   // ================= SCROLL =================
   const scroll = (direction) => {
     if (!scrollRef.current) return;
-
     scrollRef.current.scrollBy({
       left: direction === "left" ? -300 : 300,
       behavior: "smooth",
@@ -87,27 +85,21 @@ const HomePage = ({ sideNavbar }) => {
 
       {/* CATEGORY BAR */}
       <div className={`homepage-options-wrapper ${sideNavbar ? "open" : "close"}`}>
-        <button className="scroll-btn left" onClick={() => scroll("left")}>
-          ❮
-        </button>
+        <button className="scroll-btn left" onClick={() => scroll("left")}>❮</button>
 
         <div className="homepage-options" ref={scrollRef}>
           {categories.map((category, index) => (
             <div
               key={index}
               onClick={() => handleCategoryClick(category)}
-              className={`homepage-option ${
-                activeCategory === category ? "active" : ""
-              }`}
+              className={`homepage-option ${activeCategory === category ? "active" : ""}`}
             >
               {category}
             </div>
           ))}
         </div>
 
-        <button className="scroll-btn right" onClick={() => scroll("right")}>
-          ❯
-        </button>
+        <button className="scroll-btn right" onClick={() => scroll("right")}>❯</button>
       </div>
 
       {/* VIDEO GRID */}
@@ -135,11 +127,9 @@ const HomePage = ({ sideNavbar }) => {
                     src={item.thumbnail}
                     alt={item.title}
                     onError={(e) =>
-                      (e.target.src =
-                        "https://via.placeholder.com/300x180?text=No+Thumbnail")
+                      (e.target.src = "https://via.placeholder.com/300x180?text=No+Thumbnail")
                     }
                   />
-                  <span className="duration">10:00</span>
                 </div>
               </Link>
 
@@ -153,9 +143,7 @@ const HomePage = ({ sideNavbar }) => {
                   }
                   alt={item.user?.channelName || "User"}
                   onClick={() => {
-                    if (item.user?._id) {
-                      navigate(`/profile/${item.user._id}`);
-                    }
+                    if (item.user?._id) navigate(`/profile/${item.user._id}`);
                   }}
                 />
 
@@ -165,19 +153,15 @@ const HomePage = ({ sideNavbar }) => {
                   <p
                     className="channel"
                     onClick={() => {
-                      if (item.user?._id) {
-                        navigate(`/profile/${item.user._id}`);
-                      }
+                      if (item.user?._id) navigate(`/profile/${item.user._id}`);
                     }}
                   >
                     {item.user?.channelName || "Unknown Channel"}
                   </p>
 
                   <p className="stats">
-                    {item.likes?.length || 0} likes •{" "}
-                    {item.createdAt
-                      ? new Date(item.createdAt).toDateString()
-                      : ""}
+                    {formatViews(item.views)} views • {item.likes?.length || 0} likes •{" "}
+                    {item.createdAt ? new Date(item.createdAt).toDateString() : ""}
                   </p>
                 </div>
               </div>
