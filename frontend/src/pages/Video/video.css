@@ -201,3 +201,19 @@
 .active_dislike {
   color: #ff4d4d;
 }
+/* ===== VIEW COUNT ===== */
+.video_views_row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 12px;
+}
+.video_views_count {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary, #fff);
+}
+.video_views_date {
+  font-size: 14px;
+  color: var(--text-secondary, #aaa);
+}
