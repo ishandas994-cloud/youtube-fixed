@@ -4,17 +4,25 @@ const commentSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true
+    required: true,
   },
   video: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Video",
-    required: true
+    required: true,
   },
   message: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
+  // REPLIES — nested array of reply objects
+  replies: [
+    {
+      user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+      message: { type: String, required: true },
+      createdAt: { type: Date, default: Date.now },
+    },
+  ],
 }, { timestamps: true });
 
 module.exports = mongoose.model("Comment", commentSchema);
