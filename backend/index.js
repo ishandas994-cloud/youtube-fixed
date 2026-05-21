@@ -1,12 +1,11 @@
 require("dotenv").config();
-
-const express = require("express");
+const express    = require("express");
 const cookieParser = require("cookie-parser");
-const mongoose = require("mongoose");
+const mongoose   = require("mongoose");
 
 const app = express();
 
-// ===== CORS - set headers on EVERY response before anything else =====
+// ===== CORS =====
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH");
@@ -23,30 +22,24 @@ app.use(cookieParser());
 // ===== DATABASE =====
 require("./Connection/conn");
 
-// ===== DB READY CHECK - wait for MongoDB before handling API requests =====
+// ===== DB READY CHECK =====
 app.use("/api", async (req, res, next) => {
   if (mongoose.connection.readyState === 1) return next();
-  // Wait up to 5 seconds for connection
   let attempts = 0;
   const wait = setInterval(() => {
     attempts++;
-    if (mongoose.connection.readyState === 1) {
-      clearInterval(wait);
-      return next();
-    }
-    if (attempts >= 10) {
-      clearInterval(wait);
-      return res.status(503).json({ success: false, message: "Database not ready, try again" });
-    }
+    if (mongoose.connection.readyState === 1) { clearInterval(wait); return next(); }
+    if (attempts >= 10) { clearInterval(wait); return res.status(503).json({ success: false, message: "Database not ready" }); }
   }, 500);
 });
 
 // ===== ROUTES =====
-app.use("/api/user",       require("./Routes/user"));
-app.use("/api/video",      require("./Routes/video"));
-app.use("/api/comment",    require("./Routes/comment"));
-app.use("/api/history",    require("./Routes/history"));
-app.use("/api/watchlater", require("./Routes/watchLater"));
+app.use("/api/user",         require("./Routes/user"));
+app.use("/api/video",        require("./Routes/video"));
+app.use("/api/comment",      require("./Routes/comment"));
+app.use("/api/history",      require("./Routes/history"));
+app.use("/api/watchlater",   require("./Routes/watchLater"));
+app.use("/api/notification", require("./Routes/notification"));
 
 // ===== HOME =====
 app.get("/", (req, res) => {
@@ -57,18 +50,9 @@ app.get("/", (req, res) => {
   });
 });
 
-// ===== 404 =====
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: "Route not found" });
-});
+app.use((req, res) => res.status(404).json({ success: false, message: "Route not found" }));
+app.use((err, req, res, next) => res.status(500).json({ success: false, message: err.message }));
 
-// ===== ERROR =====
-app.use((err, req, res, next) => {
-  console.error("ERROR:", err.message);
-  res.status(500).json({ success: false, message: err.message });
-});
-
-// ===== LOCAL ONLY =====
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 4000;
   app.listen(PORT, () => console.log("Server on port " + PORT));

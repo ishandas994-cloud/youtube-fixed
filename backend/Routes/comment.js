@@ -1,17 +1,11 @@
 const express = require("express");
 const router = express.Router();
-
-const {
-  addComment,
-  getCommentsByVideo
-} = require("../Controllers/comment");
-
+const { addComment, getCommentsByVideo, addReply, deleteComment } = require("../Controllers/comment");
 const auth = require("../Connection/middleware/authentication");
 
-// ADD COMMENT
-router.post("/", auth, addComment);
-
-// GET COMMENTS
-router.get("/:videoId", getCommentsByVideo);
+router.post("/",                         auth, addComment);
+router.get("/:videoId",                  getCommentsByVideo);
+router.post("/reply/:commentId",         auth, addReply);
+router.delete("/delete/:commentId",      auth, deleteComment);
 
 module.exports = router;
