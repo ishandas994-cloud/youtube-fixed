@@ -1,7 +1,8 @@
 require("dotenv").config();
-const express    = require("express");
+const express     = require("express");
 const cookieParser = require("cookie-parser");
-const mongoose   = require("mongoose");
+const mongoose    = require("mongoose");
+const connectDB   = require("./Connection/conn");
 
 const app = express();
 
@@ -9,7 +10,7 @@ const app = express();
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS,PATCH");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Requested-With");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
   if (req.method === "OPTIONS") return res.sendStatus(200);
   next();
 });
@@ -19,18 +20,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ===== DATABASE =====
-require("./Connection/conn");
-
-// ===== DB READY CHECK =====
-app.use("/api", async (req, res, next) => {
-  if (mongoose.connection.readyState === 1) return next();
-  let attempts = 0;
-  const wait = setInterval(() => {
-    attempts++;
-    if (mongoose.connection.readyState === 1) { clearInterval(wait); return next(); }
-    if (attempts >= 10) { clearInterval(wait); return res.status(503).json({ success: false, message: "Database not ready" }); }
-  }, 500);
+// ===== CONNECT DB ON EVERY REQUEST (Vercel serverless needs this) =====
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
 });
 
 // ===== ROUTES =====
@@ -51,7 +44,10 @@ app.get("/", (req, res) => {
 });
 
 app.use((req, res) => res.status(404).json({ success: false, message: "Route not found" }));
-app.use((err, req, res, next) => res.status(500).json({ success: false, message: err.message }));
+app.use((err, req, res, next) => {
+  console.error("ERROR:", err.message);
+  res.status(500).json({ success: false, message: err.message });
+});
 
 if (process.env.NODE_ENV !== "production") {
   const PORT = process.env.PORT || 4000;

@@ -1,9 +1,13 @@
 const mongoose = require("mongoose");
 
 mongoose.set("bufferCommands", false);
+mongoose.set("strictQuery", false);
 
 const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) return;
+  if (mongoose.connection.readyState >= 1) {
+    console.log("MongoDB already connected");
+    return;
+  }
 
   const mongoUri = process.env.MONGO_URL;
   if (!mongoUri) {
@@ -13,9 +17,9 @@ const connectDB = async () => {
 
   try {
     await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 30000,
+      serverSelectionTimeoutMS: 10000,
       socketTimeoutMS: 45000,
-      maxPoolSize: 10,
+      maxPoolSize: 5,
     });
     console.log("MongoDB Connected ✅");
   } catch (err) {
@@ -23,5 +27,4 @@ const connectDB = async () => {
   }
 };
 
-connectDB();
 module.exports = connectDB;
