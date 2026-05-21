@@ -122,3 +122,10 @@
 @media (max-width: 768px) {
   .grid-4, .grid-3 { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
 }
+
+/* subscriber count under channel name */
+.sub-count {
+  font-size: 12px;
+  color: var(--text-tertiary, #717171);
+  margin-bottom: 2px;
+}
